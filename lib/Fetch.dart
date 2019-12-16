@@ -12,7 +12,6 @@ class Fetch {
     var element = document.querySelector("span.signal img");
     String title = element.getAttribute("title");
 
-//    gg(document);
 //    print(element.outerHtml);
 //    scaffoldkey.currentState.showSnackBar(SnackBar(
 //      content: Text(title),
@@ -45,8 +44,15 @@ class Fetch {
       weaCondition.img = "https://www.cwb.gov.tw" + imgElement.getAttribute("src");
       weaCondition.statusTxt = imgElement.getAttribute("title");
 
+      uhtml.Element imgNightElement = document.querySelector("tr.night td[headers='day$i'] img");
+      weaCondition.imgNight = "https://www.cwb.gov.tw" + imgNightElement.getAttribute("src");
+      weaCondition.statusTxtNight = imgNightElement.getAttribute("title");
+
       uhtml.Element temElement = document.querySelector("tr.day td[headers='day$i'] p span");
       weaCondition.tem = temElement.outerHtml.replaceAll(htmlTag, "");
+
+      uhtml.Element temNightElement = document.querySelector("tr.night td[headers='day$i'] p span");
+      weaCondition.temNight = temNightElement.outerHtml.replaceAll(htmlTag, "");
 
       print(weaCondition.toString());
       list.add(weaCondition);

@@ -50,6 +50,7 @@ class _JoappState extends State<Joapp> {
   final GlobalKey<ScaffoldState> _scaffoldkey = new GlobalKey<ScaffoldState>();
 
   Future<List<WeaCondition>> _future;
+  double imgIconSize = 90.0;
 
   @override
   void initState() {
@@ -129,11 +130,15 @@ class _JoappState extends State<Joapp> {
 
   Widget _makeView(AsyncSnapshot snapshot) {
     List<WeaCondition> list = snapshot.data;
+    double _titleSize = Theme.of(context).textTheme.title.fontSize;
+    TextStyle _ts = TextStyle(
+      fontSize: _titleSize,
+    );
 
     return Container(
       transform: Matrix4.rotationZ(-0.05),
       margin: EdgeInsets.all(8.0),
-      height: 200.0,
+      height: 330.0,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: list.length,
@@ -142,35 +147,62 @@ class _JoappState extends State<Joapp> {
           return Padding(
             padding: EdgeInsets.only(right: 4.0),
             child: ClipRRect(
-              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              borderRadius: BorderRadius.all(Radius.circular(20.0)),
               child: Container(
                 padding: EdgeInsets.all(10.0),
-//            constraints: BoxConstraints.tightFor(),
-//            height: 120.0,
                 color: Colors.white,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(weaCondition.weekDay,
                         style: weaCondition.weekDay == "星期日"
-                            ? TextStyle(
+                            ? _ts.copyWith(
                                 color: Colors.red[300],
                                 fontWeight: FontWeight.bold)
                             : weaCondition.weekDay == "星期六"
-                                ? TextStyle(
+                                ? _ts.copyWith(
                                     color: Colors.blue[500],
                                     fontWeight: FontWeight.bold)
-                                : null),
+                                : _ts),
+                    SizedBox(
+                      height: 6.0,
+                    ),
                     Text(weaCondition.date),
-                    SvgPicture.network(
-                      weaCondition.img,
-                      semanticsLabel: weaCondition.statusTxt,
-                      placeholderBuilder: (BuildContext context) => Container(
-                          padding: const EdgeInsets.all(30.0),
-                          child: const CircularProgressIndicator()),
+                    SizedBox(
+                      width: imgIconSize,
+                      height: imgIconSize,
+                      child: SvgPicture.network(
+                        weaCondition.img,
+                        semanticsLabel: weaCondition.statusTxt,
+                        placeholderBuilder: (BuildContext context) => Container(
+                            padding: const EdgeInsets.all(30.0),
+                            child: const CircularProgressIndicator()),
+                      ),
                     ),
                     Text(weaCondition.statusTxt),
-                    Text(weaCondition.tem),
+                    Text(
+                      weaCondition.tem,
+                      style: TextStyle(fontSize: _titleSize),
+                    ),
+                    SizedBox(
+                      height: 4.0,
+                    ),
+                    SizedBox(
+                      width: imgIconSize,
+                      height: imgIconSize,
+                      child: SvgPicture.network(
+                        weaCondition.imgNight,
+                        semanticsLabel: weaCondition.statusTxtNight,
+                        placeholderBuilder: (BuildContext context) => Container(
+                            padding: const EdgeInsets.all(30.0),
+                            child: const CircularProgressIndicator()),
+                      ),
+                    ),
+                    Text(weaCondition.statusTxtNight),
+                    Text(
+                      weaCondition.temNight,
+                      style: TextStyle(fontSize: _titleSize),
+                    ),
                   ],
                 ),
               ),
