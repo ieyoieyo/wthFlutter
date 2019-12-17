@@ -131,9 +131,8 @@ class _JoappState extends State<Joapp> {
   Widget _makeView(AsyncSnapshot snapshot) {
     List<WeaCondition> list = snapshot.data;
     double _titleSize = Theme.of(context).textTheme.title.fontSize;
-    TextStyle _ts = TextStyle(
-      fontSize: _titleSize,
-    );
+    TextStyle _ts =
+        TextStyle(fontSize: _titleSize, fontWeight: FontWeight.bold);
 
     return Container(
       transform: Matrix4.rotationZ(-0.05),
@@ -146,65 +145,69 @@ class _JoappState extends State<Joapp> {
           WeaCondition weaCondition = list.elementAt(index);
           return Padding(
             padding: EdgeInsets.only(right: 4.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.all(Radius.circular(20.0)),
-              child: Container(
-                padding: EdgeInsets.all(10.0),
+            child: Container(
+              decoration: BoxDecoration(
                 color: Colors.white,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(weaCondition.weekDay,
-                        style: weaCondition.weekDay == "星期日"
-                            ? _ts.copyWith(
-                                color: Colors.red[300],
-                                fontWeight: FontWeight.bold)
-                            : weaCondition.weekDay == "星期六"
-                                ? _ts.copyWith(
-                                    color: Colors.blue[500],
-                                    fontWeight: FontWeight.bold)
-                                : _ts),
-                    SizedBox(
-                      height: 6.0,
-                    ),
-                    Text(weaCondition.date),
-                    SizedBox(
-                      width: imgIconSize,
-                      height: imgIconSize,
-                      child: SvgPicture.network(
-                        weaCondition.img,
-                        semanticsLabel: weaCondition.statusTxt,
-                        placeholderBuilder: (BuildContext context) => Container(
-                            padding: const EdgeInsets.all(30.0),
-                            child: const CircularProgressIndicator()),
-                      ),
-                    ),
-                    Text(weaCondition.statusTxt),
-                    Text(
-                      weaCondition.tem,
-                      style: TextStyle(fontSize: _titleSize),
-                    ),
-                    SizedBox(
-                      height: 4.0,
-                    ),
-                    SizedBox(
-                      width: imgIconSize,
-                      height: imgIconSize,
-                      child: SvgPicture.network(
-                        weaCondition.imgNight,
-                        semanticsLabel: weaCondition.statusTxtNight,
-                        placeholderBuilder: (BuildContext context) => Container(
-                            padding: const EdgeInsets.all(30.0),
-                            child: const CircularProgressIndicator()),
-                      ),
-                    ),
-                    Text(weaCondition.statusTxtNight),
-                    Text(
-                      weaCondition.temNight,
-                      style: TextStyle(fontSize: _titleSize),
-                    ),
-                  ],
+                border: Border.all(
+                  color: Colors.white,
                 ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(weaCondition.weekDay,
+                      style: weaCondition.weekDay == "星期日"
+                          ? _ts.copyWith(
+                              color: Colors.red,
+                            )
+                          : weaCondition.weekDay == "星期六"
+                              ? _ts.copyWith(
+                                  color: Colors.blue[500],
+                                )
+                              : _ts.copyWith(
+                                  fontWeight: FontWeight.normal)),
+                  SizedBox(
+                    height: 6.0,
+                  ),
+                  Text(weaCondition.date),
+                  SizedBox(
+                    width: imgIconSize,
+                    height: imgIconSize,
+                    child: SvgPicture.network(
+                      weaCondition.img,
+                      semanticsLabel: weaCondition.statusTxt,
+                      placeholderBuilder: (BuildContext context) => Container(
+                          padding: const EdgeInsets.all(30.0),
+                          child: const CircularProgressIndicator()),
+                    ),
+                  ),
+                  Text(weaCondition.statusTxt),
+                  Text(
+                    weaCondition.tem,
+                    style: TextStyle(fontSize: _titleSize),
+                  ),
+                  SizedBox(
+                    height: 4.0,
+                  ),
+                  SizedBox(
+                    width: imgIconSize,
+                    height: imgIconSize,
+                    child: SvgPicture.network(
+                      weaCondition.imgNight,
+                      semanticsLabel: weaCondition.statusTxtNight,
+                      placeholderBuilder: (BuildContext context) => Container(
+                          padding: const EdgeInsets.all(30.0),
+                          child: const CircularProgressIndicator()),
+                    ),
+                  ),
+                  Text(weaCondition.statusTxtNight),
+                  Text(
+                    weaCondition.temNight,
+                    style: TextStyle(fontSize: _titleSize),
+                  ),
+                ],
               ),
             ),
           );
