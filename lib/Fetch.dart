@@ -1,22 +1,58 @@
 import 'dart:convert';
+import 'package:flutter_app/Wea36Hr.dart';
 import 'package:flutter_app/WeaCondition.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import "package:universal_html/html.dart" as uhtml;
 
 class Fetch {
-  static Future<List<WeaCondition>> handleData(GlobalKey<ScaffoldState> scaffoldkey) async {
-    String result = await fetchPost();
+  static Future<List<WeaCondition>> handleData(
+      GlobalKey<ScaffoldState> scaffoldkey) async {
+    String url36hr =
+        "https://www.cwb.gov.tw/Data/js/TableData_36hr_County_C.js";
+    String result36hr = await fetchPost(url36hr);
+    parse36(result36hr);
+
+    String urlWeek =
+        "https://www.cwb.gov.tw/V8/C/W/County/MOD/Week/63_Week_PC.html";
+    String result = await fetchPost(urlWeek);
     uhtml.Document document =
         uhtml.DomParser().parseFromString(result, "text/html");
-    var element = document.querySelector("span.signal img");
-    String title = element.getAttribute("title");
 
 //    print(element.outerHtml);
 //    scaffoldkey.currentState.showSnackBar(SnackBar(
 //      content: Text(title),
 //    ));
     return gg(document);
+  }
+
+  static void parse36(String response) {
+    String updateTime = RegExp("\=.+;").stringMatch(response);
+    updateTime = RegExp("\\d+.+\\d").stringMatch(updateTime);
+
+    String county = "63";
+    String mapStr = RegExp(r"""\{[\n\w\d\s'":\[\]\{\}\/\-\~,\u4E00-\u9FA5]+""")
+        .stringMatch(response);
+    mapStr = mapStr.replaceAll("'", "\"");
+    String svgRoot =
+        "https://www.cwb.gov.tw/V8/assets/img/weather_icons/weathers/svg_icon/";
+    var joMap = jsonDecode(mapStr);
+    var joo = joMap[county];
+    for (int i = 0; i < 3; i++) {
+      String svg = svgRoot;
+      if (joo[i]["Type"].toString().endsWith("M")) {
+        svg += "day/";
+      } else if (joo[i]["Type"].toString().endsWith("N")) svg += "night/";
+      svg += joo[i]["Wx_Icon"] + ".svg";
+
+      Wea36Hr wea36hr = Wea36Hr(
+        timeRange: joo[i]["TimeRange"],
+        img: svg,
+      );
+      print(wea36hr.show());
+    }
+//print(joMap[county]);
+//    print(mapStr);
   }
 
   static List<WeaCondition> gg(uhtml.Document document) {
@@ -35,35 +71,41 @@ class Fetch {
 
       int count = 1;
       for (var match in notSpace.allMatches(ss)) {
-        if (count == 1) weaCondition.weekDay = match.group(0);
-        else weaCondition.date = match.group(0);
-        count ++;
+        if (count == 1)
+          weaCondition.weekDay = match.group(0);
+        else
+          weaCondition.date = match.group(0);
+        count++;
       }
 
-      uhtml.Element imgElement = document.querySelector("tr.day td[headers='day$i'] img");
-      weaCondition.img = "https://www.cwb.gov.tw" + imgElement.getAttribute("src");
+      uhtml.Element imgElement =
+          document.querySelector("tr.day td[headers='day$i'] img");
+      weaCondition.img =
+          "https://www.cwb.gov.tw" + imgElement.getAttribute("src");
       weaCondition.statusTxt = imgElement.getAttribute("title");
 
-      uhtml.Element imgNightElement = document.querySelector("tr.night td[headers='day$i'] img");
-      weaCondition.imgNight = "https://www.cwb.gov.tw" + imgNightElement.getAttribute("src");
+      uhtml.Element imgNightElement =
+          document.querySelector("tr.night td[headers='day$i'] img");
+      weaCondition.imgNight =
+          "https://www.cwb.gov.tw" + imgNightElement.getAttribute("src");
       weaCondition.statusTxtNight = imgNightElement.getAttribute("title");
 
-      uhtml.Element temElement = document.querySelector("tr.day td[headers='day$i'] p span");
+      uhtml.Element temElement =
+          document.querySelector("tr.day td[headers='day$i'] p span");
       weaCondition.tem = temElement.outerHtml.replaceAll(htmlTag, "");
 
-      uhtml.Element temNightElement = document.querySelector("tr.night td[headers='day$i'] p span");
+      uhtml.Element temNightElement =
+          document.querySelector("tr.night td[headers='day$i'] p span");
       weaCondition.temNight = temNightElement.outerHtml.replaceAll(htmlTag, "");
 
-      print(weaCondition.toString());
+//      print(weaCondition.toString());
       list.add(weaCondition);
     }
     return list;
   }
 
-  static Future<String> fetchPost() async {
+  static Future<String> fetchPost(String url) async {
 //    await Future.delayed(Duration(seconds: 3));
-    String url =
-        "https://www.cwb.gov.tw/V8/C/W/County/MOD/Week/63_Week_PC.html";
 //    String url = "https://www.cwb.gov.tw/V8/C/W/County/County.html?CID=63";
     final response = await http.get(url);
 
