@@ -51,8 +51,14 @@ class _JoappState extends State<Joapp> {
   final GlobalKey<ScaffoldState> _scaffoldkey = new GlobalKey<ScaffoldState>();
 
   Future<Map> _future;
-  double imgIconSize = 70.0;
-  double imgIconSize36hr = 90.0;
+  double imgIconSize36hr = 80.0;
+  double imgIconSize = 50.0;
+
+  double list36hrHeight = 206.0;
+  double listWeekHeight = 270.0;
+
+  double item36hrWidth = 110.0;
+  double itemWeekWidth = 100.0;
 
   @override
   void initState() {
@@ -135,33 +141,59 @@ class _JoappState extends State<Joapp> {
     double _titleSize = Theme.of(context).textTheme.title.fontSize;
     TextStyle _ts =
         TextStyle(fontSize: _titleSize, fontWeight: FontWeight.bold);
-//    Wea36Hr wea36hr = mmap["36hr"]
+    TextStyle ts36hr = TextStyle(
+      color: Colors.white,
+    );
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Container(
-//          transform: Matrix4.rotationZ(-0.05),
-          margin: EdgeInsets.all(8.0),
-          height: 200.0,
+          padding: EdgeInsets.only(right: 10.0),
+          alignment: Alignment.centerRight,
+          transform: Matrix4.rotationZ(0.025),
+          child: Text(
+            Fetch.updateTime,
+            style: TextStyle(
+                fontSize: Theme.of(context).textTheme.body1.fontSize - 2.0),
+          ),
+        ),
+        Container(
+          alignment: Alignment.center,
+          transform: Matrix4.rotationZ(0.025),
+          margin: EdgeInsets.only(
+            left: 8.0,
+            bottom: 8.0,
+          ),
+          height: list36hrHeight,
           child: ListView.builder(
+            shrinkWrap: true,
             scrollDirection: Axis.horizontal,
             itemCount: mmap["36hr"].length,
             itemBuilder: (context, index) {
               Wea36Hr wea36hr = mmap["36hr"].elementAt(index);
               return Padding(
-                padding: EdgeInsets.only(right: 6.0),
+                padding: EdgeInsets.only(right: 3.0),
                 child: Container(
+                  constraints: BoxConstraints.tightFor(
+                    width: item36hrWidth,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Colors.black54,
                     border: Border.all(
-                      color: Colors.white,
+                      color: Colors.black,
                     ),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   padding: EdgeInsets.all(8.0),
                   child: Column(
                     children: <Widget>[
-                      Text(wea36hr.dayTxt),
+                      Text(
+                        wea36hr.dayTxt,
+                        style: ts36hr.copyWith(
+                          fontSize: _titleSize,
+                        ),
+                      ),
                       SizedBox(
                         width: imgIconSize36hr,
                         height: imgIconSize36hr,
@@ -174,10 +206,37 @@ class _JoappState extends State<Joapp> {
                                   child: const CircularProgressIndicator()),
                         ),
                       ),
-                      Text(wea36hr.imgTxt),
-                      Text(wea36hr.tem),
-                      Text(wea36hr.rain),
-                      Text(wea36hr.statusTxt),
+                      Text(
+                        wea36hr.imgTxt,
+                        maxLines: 1,
+                        softWrap: false,
+                        style: ts36hr,
+                      ),
+                      Text(
+                        wea36hr.tem,
+                        style: ts36hr.copyWith(
+                          fontSize: _titleSize,
+                        ),
+                      ),
+                      Row(mainAxisSize: MainAxisSize.min, children: [
+                        Padding(
+                          padding: EdgeInsets.only(right: 2.0),
+                          child: Icon(
+                            Icons.beach_access,
+                            color: Colors.white,
+                            size: 12.0,
+                          ),
+                        ),
+                        Text(
+                          wea36hr.rain,
+                          style: ts36hr,
+                        ),
+                      ]),
+                      Text(
+                        wea36hr.statusTxt,
+                        textAlign: TextAlign.center,
+                        style: ts36hr,
+                      ),
                     ],
                   ),
                 ),
@@ -185,12 +244,20 @@ class _JoappState extends State<Joapp> {
             },
           ),
         ),
-        Text("未來一週"),
+        Container(
+          margin: EdgeInsets.only(left: 10.0),
+          transform: Matrix4.rotationZ(-0.05),
+          child: Text(
+            "未來一週",
+            textScaleFactor: 1.1,
+          ),
+        ),
         Container(
           transform: Matrix4.rotationZ(-0.05),
           margin: EdgeInsets.all(8.0),
-          height: 300.0,
+          height: listWeekHeight,
           child: ListView.builder(
+            padding: EdgeInsets.only(right: 10.0),
             scrollDirection: Axis.horizontal,
             itemCount: mmap["week"].length,
             itemBuilder: (context, index) {
@@ -198,10 +265,14 @@ class _JoappState extends State<Joapp> {
               return Padding(
                 padding: EdgeInsets.only(right: 4.0),
                 child: Container(
+                  constraints: BoxConstraints.tightFor(
+                    width: itemWeekWidth,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(
-                      color: Colors.white,
+                      color: Colors.blue,
+                      width: 2.0,
                     ),
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -229,12 +300,10 @@ class _JoappState extends State<Joapp> {
                         height: imgIconSize,
                         child: SvgPicture.network(
                           weaCondition.img,
-//                          width: 50.0,
-//                          height: 50.0,
                           semanticsLabel: weaCondition.statusTxt,
                           placeholderBuilder: (BuildContext context) =>
                               Container(
-                                  padding: const EdgeInsets.all(30.0),
+                                  padding: const EdgeInsets.all(2.0),
                                   child: const CircularProgressIndicator()),
                         ),
                       ),

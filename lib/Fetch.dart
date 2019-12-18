@@ -6,12 +6,14 @@ import 'package:flutter/material.dart';
 import "package:universal_html/html.dart" as uhtml;
 
 class Fetch {
-  static Future<Map> handleData(
-      GlobalKey<ScaffoldState> scaffoldkey) async {
+  static String updateTime = "";
+
+  static Future<Map> handleData(GlobalKey<ScaffoldState> scaffoldkey) async {
+    Map mmap = {};
     String url36hr =
         "https://www.cwb.gov.tw/Data/js/TableData_36hr_County_C.js";
     String result36hr = await fetchPost(url36hr);
-    var aa = parse36(result36hr);
+    mmap["36hr"] = parse36(result36hr);
 
     String urlWeek =
         "https://www.cwb.gov.tw/V8/C/W/County/MOD/Week/63_Week_PC.html";
@@ -19,22 +21,19 @@ class Fetch {
     uhtml.Document document =
         uhtml.DomParser().parseFromString(result, "text/html");
 
-//    print(element.outerHtml);
 //    scaffoldkey.currentState.showSnackBar(SnackBar(
 //      content: Text(title),
 //    ));
-  var bb = gg(document);
-  Map mmap = {};
-  mmap["36hr"] = aa;
-  mmap["week"] = bb;
-  print(mmap);
-  return mmap;
+    mmap["week"] = parseWeek(document);
+//    print(mmap);
+    return mmap;
 //    return gg(document);
   }
 
   static List<Wea36Hr> parse36(String response) {
-    String updateTime = RegExp("\=.+;").stringMatch(response);
+    updateTime = RegExp("\=.+;").stringMatch(response);
     updateTime = RegExp("\\d+.+\\d").stringMatch(updateTime);
+    updateTime = "資料更新時間：" + updateTime;
 
     String county = "63";
     List<Wea36Hr> allList = [];
@@ -47,7 +46,8 @@ class Fetch {
     var joo = joMap[county];
     for (int i = 0; i < 3; i++) {
       String svg = svgRoot;
-      if (joo[i]["Type"].toString().endsWith("M")) {
+      if (joo[i]["Type"].toString().endsWith("M") ||
+          joo[i]["Type"].toString().endsWith("D")) {
         svg += "day/";
       } else if (joo[i]["Type"].toString().endsWith("N")) svg += "night/";
       svg += joo[i]["Wx_Icon"] + ".svg";
@@ -61,12 +61,13 @@ class Fetch {
         rain: joo[i]["PoP"],
         statusTxt: joo[i]["CI"],
       );
+//      print(wea36hr.show());
       allList.add(wea36hr);
     }
     return allList;
   }
 
-  static List<WeaCondition> gg(uhtml.Document document) {
+  static List<WeaCondition> parseWeek(uhtml.Document document) {
     List<WeaCondition> list = [];
     RegExp htmlTag = RegExp("<[^>]*>");
     RegExp notSpace = RegExp(r'\S+');
