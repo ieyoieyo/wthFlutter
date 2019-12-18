@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import "package:universal_html/html.dart" as uhtml;
 
 class Fetch {
-  static Future<List<WeaCondition>> handleData(
+  static Future<Map> handleData(
       GlobalKey<ScaffoldState> scaffoldkey) async {
     String url36hr =
         "https://www.cwb.gov.tw/Data/js/TableData_36hr_County_C.js";
     String result36hr = await fetchPost(url36hr);
-    parse36(result36hr);
+    var aa = parse36(result36hr);
 
     String urlWeek =
         "https://www.cwb.gov.tw/V8/C/W/County/MOD/Week/63_Week_PC.html";
@@ -23,14 +23,21 @@ class Fetch {
 //    scaffoldkey.currentState.showSnackBar(SnackBar(
 //      content: Text(title),
 //    ));
-    return gg(document);
+  var bb = gg(document);
+  Map mmap = {};
+  mmap["36hr"] = aa;
+  mmap["week"] = bb;
+  print(mmap);
+  return mmap;
+//    return gg(document);
   }
 
-  static void parse36(String response) {
+  static List<Wea36Hr> parse36(String response) {
     String updateTime = RegExp("\=.+;").stringMatch(response);
     updateTime = RegExp("\\d+.+\\d").stringMatch(updateTime);
 
     String county = "63";
+    List<Wea36Hr> allList = [];
     String mapStr = RegExp(r"""\{[\n\w\d\s'":\[\]\{\}\/\-\~,\u4E00-\u9FA5]+""")
         .stringMatch(response);
     mapStr = mapStr.replaceAll("'", "\"");
@@ -48,11 +55,15 @@ class Fetch {
       Wea36Hr wea36hr = Wea36Hr(
         timeRange: joo[i]["TimeRange"],
         img: svg,
+        imgTxt: joo[i]["Wx"],
+        type: joo[i]["Type"],
+        tem: joo[i]["Temp"]["C"]["L"] + " - " + joo[i]["Temp"]["C"]["H"],
+        rain: joo[i]["PoP"],
+        statusTxt: joo[i]["CI"],
       );
-      print(wea36hr.show());
+      allList.add(wea36hr);
     }
-//print(joMap[county]);
-//    print(mapStr);
+    return allList;
   }
 
   static List<WeaCondition> gg(uhtml.Document document) {

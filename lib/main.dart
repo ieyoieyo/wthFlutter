@@ -1,4 +1,5 @@
 import 'package:flutter_app/Fetch.dart';
+import 'package:flutter_app/Wea36Hr.dart';
 import 'package:flutter_app/WeaCondition.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/physics.dart';
@@ -49,8 +50,9 @@ class Joapp extends StatefulWidget {
 class _JoappState extends State<Joapp> {
   final GlobalKey<ScaffoldState> _scaffoldkey = new GlobalKey<ScaffoldState>();
 
-  Future<List<WeaCondition>> _future;
-  double imgIconSize = 90.0;
+  Future<Map> _future;
+  double imgIconSize = 70.0;
+  double imgIconSize36hr = 90.0;
 
   @override
   void initState() {
@@ -106,7 +108,7 @@ class _JoappState extends State<Joapp> {
         },
         child: Icon(Icons.refresh),
       ),
-      body: FutureBuilder<List<WeaCondition>>(
+      body: FutureBuilder<Map>(
         future: _future,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           print("Future builder go go");
@@ -129,90 +131,146 @@ class _JoappState extends State<Joapp> {
   }
 
   Widget _makeView(AsyncSnapshot snapshot) {
-    List<WeaCondition> list = snapshot.data;
+    Map mmap = snapshot.data;
     double _titleSize = Theme.of(context).textTheme.title.fontSize;
     TextStyle _ts =
         TextStyle(fontSize: _titleSize, fontWeight: FontWeight.bold);
+//    Wea36Hr wea36hr = mmap["36hr"]
 
-    return Container(
-      transform: Matrix4.rotationZ(-0.05),
-      margin: EdgeInsets.all(8.0),
-      height: 330.0,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: list.length,
-        itemBuilder: (context, index) {
-          WeaCondition weaCondition = list.elementAt(index);
-          return Padding(
-            padding: EdgeInsets.only(right: 4.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(
-                  color: Colors.white,
+    return Column(
+      children: <Widget>[
+        Container(
+//          transform: Matrix4.rotationZ(-0.05),
+          margin: EdgeInsets.all(8.0),
+          height: 200.0,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: mmap["36hr"].length,
+            itemBuilder: (context, index) {
+              Wea36Hr wea36hr = mmap["36hr"].elementAt(index);
+              return Padding(
+                padding: EdgeInsets.only(right: 6.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(
+                      color: Colors.white,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: EdgeInsets.all(8.0),
+                  child: Column(
+                    children: <Widget>[
+                      Text(wea36hr.dayTxt),
+                      SizedBox(
+                        width: imgIconSize36hr,
+                        height: imgIconSize36hr,
+                        child: SvgPicture.network(
+                          wea36hr.img,
+                          semanticsLabel: wea36hr.statusTxt,
+                          placeholderBuilder: (BuildContext context) =>
+                              Container(
+                                  padding: const EdgeInsets.all(30.0),
+                                  child: const CircularProgressIndicator()),
+                        ),
+                      ),
+                      Text(wea36hr.imgTxt),
+                      Text(wea36hr.tem),
+                      Text(wea36hr.rain),
+                      Text(wea36hr.statusTxt),
+                    ],
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              padding: EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(weaCondition.weekDay,
-                      style: weaCondition.weekDay == "星期日"
-                          ? _ts.copyWith(
-                              color: Colors.red,
-                            )
-                          : weaCondition.weekDay == "星期六"
+              );
+            },
+          ),
+        ),
+        Text("未來一週"),
+        Container(
+          transform: Matrix4.rotationZ(-0.05),
+          margin: EdgeInsets.all(8.0),
+          height: 300.0,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: mmap["week"].length,
+            itemBuilder: (context, index) {
+              WeaCondition weaCondition = mmap["week"].elementAt(index);
+              return Padding(
+                padding: EdgeInsets.only(right: 4.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(
+                      color: Colors.white,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: EdgeInsets.all(8.0),
+                  child: Column(
+//                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(weaCondition.weekDay,
+                          style: weaCondition.weekDay == "星期日"
                               ? _ts.copyWith(
-                                  color: Colors.blue[500],
+                                  color: Colors.red,
                                 )
-                              : _ts.copyWith(
-                                  fontWeight: FontWeight.normal)),
-                  SizedBox(
-                    height: 6.0,
+                              : weaCondition.weekDay == "星期六"
+                                  ? _ts.copyWith(
+                                      color: Colors.blue[500],
+                                    )
+                                  : _ts.copyWith(
+                                      fontWeight: FontWeight.normal)),
+                      SizedBox(
+                        height: 6.0,
+                      ),
+                      Text(weaCondition.date),
+                      SizedBox(
+                        width: imgIconSize,
+                        height: imgIconSize,
+                        child: SvgPicture.network(
+                          weaCondition.img,
+//                          width: 50.0,
+//                          height: 50.0,
+                          semanticsLabel: weaCondition.statusTxt,
+                          placeholderBuilder: (BuildContext context) =>
+                              Container(
+                                  padding: const EdgeInsets.all(30.0),
+                                  child: const CircularProgressIndicator()),
+                        ),
+                      ),
+                      Text(weaCondition.statusTxt),
+                      Text(
+                        weaCondition.tem,
+                        style: TextStyle(fontSize: _titleSize),
+                      ),
+                      SizedBox(
+                        height: 4.0,
+                      ),
+                      SizedBox(
+                        width: imgIconSize,
+                        height: imgIconSize,
+                        child: SvgPicture.network(
+                          weaCondition.imgNight,
+                          semanticsLabel: weaCondition.statusTxtNight,
+                          placeholderBuilder: (BuildContext context) =>
+                              Container(
+                                  padding: const EdgeInsets.all(30.0),
+                                  child: const CircularProgressIndicator()),
+                        ),
+                      ),
+                      Text(weaCondition.statusTxtNight),
+                      Text(
+                        weaCondition.temNight,
+                        style: TextStyle(fontSize: _titleSize),
+                      ),
+                    ],
                   ),
-                  Text(weaCondition.date),
-                  SizedBox(
-                    width: imgIconSize,
-                    height: imgIconSize,
-                    child: SvgPicture.network(
-                      weaCondition.img,
-                      semanticsLabel: weaCondition.statusTxt,
-                      placeholderBuilder: (BuildContext context) => Container(
-                          padding: const EdgeInsets.all(30.0),
-                          child: const CircularProgressIndicator()),
-                    ),
-                  ),
-                  Text(weaCondition.statusTxt),
-                  Text(
-                    weaCondition.tem,
-                    style: TextStyle(fontSize: _titleSize),
-                  ),
-                  SizedBox(
-                    height: 4.0,
-                  ),
-                  SizedBox(
-                    width: imgIconSize,
-                    height: imgIconSize,
-                    child: SvgPicture.network(
-                      weaCondition.imgNight,
-                      semanticsLabel: weaCondition.statusTxtNight,
-                      placeholderBuilder: (BuildContext context) => Container(
-                          padding: const EdgeInsets.all(30.0),
-                          child: const CircularProgressIndicator()),
-                    ),
-                  ),
-                  Text(weaCondition.statusTxtNight),
-                  Text(
-                    weaCondition.temNight,
-                    style: TextStyle(fontSize: _titleSize),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+                ),
+              );
+            },
+          ),
+        )
+      ],
     );
   }
 }
