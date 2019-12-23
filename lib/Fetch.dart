@@ -60,7 +60,7 @@ class Fetch {
         rain: joo[i]["PoP"],
         statusTxt: joo[i]["CI"],
       );
-//      print(wea36hr.show());
+      print(wea36hr.show());
       allList.add(wea36hr);
     }
     return allList;
