@@ -1,16 +1,21 @@
 import 'package:flutter_app/Fetch.dart';
+import 'package:flutter_app/JoDropdownButton.dart';
 import 'package:flutter_app/Wea36Hr.dart';
 import 'package:flutter_app/WeaCondition.dart';
+import 'package:flutter_app/animEffect.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/physics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/orientGrid.dart';
 import 'package:flutter_app/JoAnim.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:simple_animations/simple_animations.dart';
+
+import 'Constant.dart';
 
 main() {
   runApp(MaterialApp(
-    title: "JO JOO",
+    title: Constant.appName,
 //    home: DefaultTabController(
 //        length: 3,
 //        child: Scaffold(
@@ -43,6 +48,9 @@ main() {
 }
 
 class Joapp extends StatefulWidget {
+  String countyNum = "63";
+  String county = "臺北市";
+
   @override
   _JoappState createState() => _JoappState();
 }
@@ -67,7 +75,18 @@ class _JoappState extends State<Joapp> {
   }
 
   void _setFuture() {
-    _future = Fetch.handleData(_scaffoldkey);
+    _future = Fetch.handleData(widget.countyNum);
+  }
+
+  void _handleCountyChange(List<String> selectCounty) {
+    setState(() {
+      widget.countyNum = selectCounty.elementAt(0);
+      widget.county = selectCounty.elementAt(1);
+
+      _future = Fetch.handleData(selectCounty.elementAt(0));
+    });
+
+    Navigator.pop(context);
   }
 
   @override
@@ -75,7 +94,7 @@ class _JoappState extends State<Joapp> {
     return Scaffold(
       key: _scaffoldkey,
       appBar: AppBar(
-        title: Text("Jo extreme"),
+        title: Text(Constant.appName + "\u{1f600}    " + widget.county),
       ),
       backgroundColor: Colors.lightBlue[200],
       drawer: Drawer(
@@ -89,13 +108,15 @@ class _JoappState extends State<Joapp> {
               ),
             ),
             ListTile(
-              title: Text("Item 1"),
-              onTap: () {
-                setState(() {
-                  _future = Fetch.handleData(_scaffoldkey);
-                });
-                Navigator.pop(context);
-              },
+              leading: Icon(Icons.location_city),
+              title: JoDropdownButton(
+                  county: widget.county, onCountyChange: _handleCountyChange),
+//              onTap: () {
+//                setState(() {
+//                  _future = Fetch.handleData(_scaffoldkey);
+//                });
+//                Navigator.pop(context);
+//              },
             ),
             ListTile(
               title: Text("Item 2"),
@@ -137,18 +158,13 @@ class _JoappState extends State<Joapp> {
   }
 
   Widget _makeView(AsyncSnapshot snapshot) {
-    Map mmap = snapshot.data;
-    double _titleSize = Theme.of(context).textTheme.title.fontSize;
-    TextStyle _ts =
-        TextStyle(fontSize: _titleSize, fontWeight: FontWeight.bold);
-    TextStyle ts36hr = TextStyle(
-      color: Colors.white,
-    );
+    Map dataMap = snapshot.data;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Container(
+          //資料更新時間
           padding: EdgeInsets.only(right: 10.0),
           alignment: Alignment.centerRight,
           transform: Matrix4.rotationZ(0.025),
@@ -159,6 +175,7 @@ class _JoappState extends State<Joapp> {
           ),
         ),
         Container(
+          //限制 ListView(36hr) 的高度
           alignment: Alignment.center,
           transform: Matrix4.rotationZ(0.025),
           margin: EdgeInsets.only(
@@ -169,78 +186,10 @@ class _JoappState extends State<Joapp> {
           child: ListView.builder(
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
-            itemCount: mmap["36hr"].length,
+            itemCount: dataMap["36hr"].length,
             itemBuilder: (context, index) {
-              Wea36Hr wea36hr = mmap["36hr"].elementAt(index);
-              return Padding(
-                padding: EdgeInsets.only(right: 3.0),
-                child: Container(
-                  constraints: BoxConstraints.tightFor(
-                    width: item36hrWidth,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    border: Border.all(
-                      color: Colors.black,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: EdgeInsets.all(8.0),
-                  child: Column(
-                    children: <Widget>[
-                      Text(
-                        wea36hr.dayTxt,
-                        style: ts36hr.copyWith(
-                          fontSize: _titleSize,
-                        ),
-                      ),
-                      SizedBox(
-                        width: imgIconSize36hr,
-                        height: imgIconSize36hr,
-                        child: SvgPicture.network(
-                          wea36hr.img,
-                          semanticsLabel: wea36hr.statusTxt,
-                          placeholderBuilder: (BuildContext context) =>
-                              Container(
-                                  padding: const EdgeInsets.all(30.0),
-                                  child: const CircularProgressIndicator()),
-                        ),
-                      ),
-                      Text(
-                        wea36hr.imgTxt,
-                        maxLines: 1,
-                        softWrap: false,
-                        style: ts36hr,
-                      ),
-                      Text(
-                        wea36hr.tem,
-                        style: ts36hr.copyWith(
-                          fontSize: _titleSize,
-                        ),
-                      ),
-                      Row(mainAxisSize: MainAxisSize.min, children: [
-                        Padding(
-                          padding: EdgeInsets.only(right: 2.0),
-                          child: Icon(
-                            Icons.beach_access,
-                            color: Colors.white,
-                            size: 12.0,
-                          ),
-                        ),
-                        Text(
-                          wea36hr.rain,
-                          style: ts36hr,
-                        ),
-                      ]),
-                      Text(
-                        wea36hr.statusTxt,
-                        textAlign: TextAlign.center,
-                        style: ts36hr,
-                      ),
-                    ],
-                  ),
-                ),
-              );
+              Wea36Hr wea36hr = dataMap["36hr"].elementAt(index);
+              return getItem36hr(index, wea36hr);
             },
           ),
         ),
@@ -252,94 +201,221 @@ class _JoappState extends State<Joapp> {
             textScaleFactor: 1.1,
           ),
         ),
-        Container(
-          transform: Matrix4.rotationZ(-0.05),
-          margin: EdgeInsets.all(8.0),
-          height: listWeekHeight,
-          child: ListView.builder(
-            padding: EdgeInsets.only(right: 10.0),
-            scrollDirection: Axis.horizontal,
-            itemCount: mmap["week"].length,
-            itemBuilder: (context, index) {
-              WeaCondition weaCondition = mmap["week"].elementAt(index);
-              return Padding(
-                padding: EdgeInsets.only(right: 4.0),
-                child: Container(
-                  constraints: BoxConstraints.tightFor(
-                    width: itemWeekWidth,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(
-                      color: Colors.blue,
-                      width: 2.0,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: EdgeInsets.all(8.0),
-                  child: Column(
-//                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(weaCondition.weekDay,
-                          style: weaCondition.weekDay == "星期日"
-                              ? _ts.copyWith(
-                                  color: Colors.red,
-                                )
-                              : weaCondition.weekDay == "星期六"
-                                  ? _ts.copyWith(
-                                      color: Colors.blue[500],
-                                    )
-                                  : _ts.copyWith(
-                                      fontWeight: FontWeight.normal)),
-                      SizedBox(
-                        height: 6.0,
-                      ),
-                      Text(weaCondition.date),
-                      SizedBox(
-                        width: imgIconSize,
-                        height: imgIconSize,
-                        child: SvgPicture.network(
-                          weaCondition.img,
-                          semanticsLabel: weaCondition.statusTxt,
-                          placeholderBuilder: (BuildContext context) =>
-                              Container(
-                                  padding: const EdgeInsets.all(2.0),
-                                  child: const CircularProgressIndicator()),
-                        ),
-                      ),
-                      Text(weaCondition.statusTxt),
-                      Text(
-                        weaCondition.tem,
-                        style: TextStyle(fontSize: _titleSize),
-                      ),
-                      SizedBox(
-                        height: 4.0,
-                      ),
-                      SizedBox(
-                        width: imgIconSize,
-                        height: imgIconSize,
-                        child: SvgPicture.network(
-                          weaCondition.imgNight,
-                          semanticsLabel: weaCondition.statusTxtNight,
-                          placeholderBuilder: (BuildContext context) =>
-                              Container(
-                                  padding: const EdgeInsets.all(30.0),
-                                  child: const CircularProgressIndicator()),
-                        ),
-                      ),
-                      Text(weaCondition.statusTxtNight),
-                      Text(
-                        weaCondition.temNight,
-                        style: TextStyle(fontSize: _titleSize),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+        JoFadeIn(
+          delay: 2.0,
+          isVertical: false,
+          child: Container(
+            //限制 ListView(week) 的高度
+            transform: Matrix4.rotationZ(-0.05),
+            margin: EdgeInsets.only(left: 8.0, right: 8.0, top: 2.0),
+            height: listWeekHeight,
+            child: ListView.builder(
+              padding: EdgeInsets.only(right: 10.0),
+              scrollDirection: Axis.horizontal,
+              itemCount: dataMap["week"].length,
+              itemBuilder: (context, index) {
+                WeaCondition weaCondition = dataMap["week"].elementAt(index);
+                return getItemWeek(index, weaCondition);
+              },
+            ),
           ),
         )
       ],
+    );
+  }
+
+  Widget getItem36hr(int index, Wea36Hr wea36hr) {
+    double _titleSize = Theme.of(context).textTheme.title.fontSize;
+    TextStyle ts36hr = TextStyle(
+      color: Colors.white,
+    );
+
+    double delay = 0.0;
+    switch (index) {
+//      case 0:
+//        delay = 0.1;
+//        break;
+      case 1:
+        delay = 0.8;
+        break;
+      case 2:
+        delay = 1.6;
+        break;
+    }
+
+    return JoFadeIn(
+      delay: delay,
+      isVertical: true,
+      child: Padding(
+        padding: EdgeInsets.only(right: 3.0),
+        child: ControlledAnimation(
+          duration: Duration(seconds: 1),
+          tween: AlignmentTween(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          curve: Curves.bounceOut,
+          playback: Playback.MIRROR,
+          builder: (context, alignment) => Container(
+            constraints: BoxConstraints.tightFor(
+              width: item36hrWidth,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              border: Border.all(
+                color: Colors.black,
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            padding: EdgeInsets.all(8.0),
+//                    padding: EdgeInsets.all(8.0),
+            child: Column(
+              children: <Widget>[
+                Text(
+                  wea36hr.dayTxt,
+                  style: ts36hr.copyWith(
+                    fontSize: _titleSize,
+                  ),
+                ),
+                ControlledAnimation(
+                  tween: Matrix4Tween(
+                      begin: Matrix4.rotationZ(-6.0),
+                      end: Matrix4.rotationZ(6.0)),
+                  duration: Duration(milliseconds: 350),
+                  playback: Playback.MIRROR,
+//                          curve: Curves.bounceOut,
+                  builder: (context, transform) => Transform(
+                    alignment: Alignment.center,
+                    transform: index == 0 ? transform : Matrix4.rotationZ(0.0),
+                    child: SizedBox(
+                      width: imgIconSize36hr,
+                      height: imgIconSize36hr,
+                      child: SvgPicture.network(
+                        wea36hr.img,
+                        semanticsLabel: wea36hr.statusTxt,
+                        placeholderBuilder: (BuildContext context) => Container(
+                            padding: const EdgeInsets.all(30.0),
+                            child: const CircularProgressIndicator()),
+                      ),
+                    ),
+                  ),
+                ),
+                Text(
+                  wea36hr.imgTxt,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: ts36hr,
+                ),
+                Container(
+                  alignment: index == 0 ? alignment : Alignment.center,
+                  child: Text(
+                    wea36hr.tem,
+                    style: ts36hr.copyWith(
+                      fontSize: _titleSize,
+                    ),
+                  ),
+                ),
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  Padding(
+                    padding: EdgeInsets.only(right: 2.0),
+                    child: Icon(
+                      Icons.beach_access,
+                      color: Colors.white,
+                      size: 12.0,
+                    ),
+                  ),
+                  Text(
+                    wea36hr.rain,
+                    style: ts36hr,
+                  ),
+                ]),
+                Text(
+                  wea36hr.statusTxt,
+                  textAlign: TextAlign.center,
+                  style: ts36hr,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget getItemWeek(int index, WeaCondition weaCondition) {
+    double _titleSize = Theme.of(context).textTheme.title.fontSize;
+    TextStyle textStyle =
+        TextStyle(fontSize: _titleSize, fontWeight: FontWeight.bold);
+    return Padding(
+      padding: EdgeInsets.only(right: 4.0),
+      child: Container(
+        constraints: BoxConstraints.tightFor(
+          width: itemWeekWidth,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(
+            color: Colors.blue,
+            width: 2.0,
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        padding: EdgeInsets.all(8.0),
+        child: Column(
+//                    mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(weaCondition.weekDay,
+                style: weaCondition.weekDay == "星期日"
+                    ? textStyle.copyWith(
+                        color: Colors.red,
+                      )
+                    : weaCondition.weekDay == "星期六"
+                        ? textStyle.copyWith(
+                            color: Colors.blue[500],
+                          )
+                        : textStyle.copyWith(fontWeight: FontWeight.normal)),
+            SizedBox(
+              height: 6.0,
+            ),
+            Text(weaCondition.date),
+            SizedBox(
+              width: imgIconSize,
+              height: imgIconSize,
+              child: SvgPicture.network(
+                weaCondition.img,
+                semanticsLabel: weaCondition.statusTxt,
+                placeholderBuilder: (BuildContext context) => Container(
+                    padding: const EdgeInsets.all(2.0),
+                    child: const CircularProgressIndicator()),
+              ),
+            ),
+            Text(weaCondition.statusTxt),
+            Text(
+              weaCondition.tem,
+              style: TextStyle(fontSize: _titleSize),
+            ),
+            SizedBox(
+              height: 4.0,
+            ),
+            SizedBox(
+              width: imgIconSize,
+              height: imgIconSize,
+              child: SvgPicture.network(
+                weaCondition.imgNight,
+                semanticsLabel: weaCondition.statusTxtNight,
+                placeholderBuilder: (BuildContext context) => Container(
+                    padding: const EdgeInsets.all(30.0),
+                    child: const CircularProgressIndicator()),
+              ),
+            ),
+            Text(weaCondition.statusTxtNight),
+            Text(
+              weaCondition.temNight,
+              style: TextStyle(fontSize: _titleSize),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

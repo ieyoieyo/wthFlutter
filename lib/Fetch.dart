@@ -8,15 +8,15 @@ import "package:universal_html/html.dart" as uhtml;
 class Fetch {
   static String updateTime = "";
 
-  static Future<Map> handleData(GlobalKey<ScaffoldState> scaffoldkey) async {
+  static Future<Map> handleData(String countyNum) async {
     Map mmap = {};
     String url36hr =
         "https://www.cwb.gov.tw/Data/js/TableData_36hr_County_C.js";
     String result36hr = await fetchPost(url36hr);
-    mmap["36hr"] = parse36(result36hr);
+    mmap["36hr"] = parse36(result36hr, countyNum);
 
     String urlWeek =
-        "https://www.cwb.gov.tw/V8/C/W/County/MOD/Week/63_Week_PC.html";
+        "https://www.cwb.gov.tw/V8/C/W/County/MOD/Week/$countyNum"+"_Week_PC.html";
     String result = await fetchPost(urlWeek);
     uhtml.Document document =
         uhtml.DomParser().parseFromString(result, "text/html");
@@ -30,12 +30,11 @@ class Fetch {
 //    return gg(document);
   }
 
-  static List<Wea36Hr> parse36(String response) {
+  static List<Wea36Hr> parse36(String response, String countyNum) {
     updateTime = RegExp("\=.+;").stringMatch(response);
     updateTime = RegExp("\\d+.+\\d").stringMatch(updateTime);
     updateTime = "資料更新時間：" + updateTime;
 
-    String county = "63";
     List<Wea36Hr> allList = [];
     String mapStr = RegExp(r"""\{[\n\w\d\s'":\[\]\{\}\/\-\~,\u4E00-\u9FA5]+""")
         .stringMatch(response);
@@ -43,7 +42,7 @@ class Fetch {
     String svgRoot =
         "https://www.cwb.gov.tw/V8/assets/img/weather_icons/weathers/svg_icon/";
     var joMap = jsonDecode(mapStr);
-    var joo = joMap[county];
+    var joo = joMap[countyNum];
     for (int i = 0; i < 3; i++) {
       String svg = svgRoot;
       if (joo[i]["Type"].toString().endsWith("M") ||
