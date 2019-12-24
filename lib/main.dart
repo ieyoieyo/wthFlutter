@@ -12,6 +12,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:simple_animations/simple_animations.dart';
 
 import 'Constant.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 main() {
   runApp(MaterialApp(
@@ -48,17 +49,11 @@ main() {
 }
 
 class Joapp extends StatefulWidget {
-  String countyNum = "63";
-  String county = "臺北市";
+  String countyNum;
+  String county;
+  final String COUNTYNUM_KEY = "countyNum";
+  final String COUNTY_KEY = "county";
 
-  @override
-  _JoappState createState() => _JoappState();
-}
-
-class _JoappState extends State<Joapp> {
-  final GlobalKey<ScaffoldState> _scaffoldkey = new GlobalKey<ScaffoldState>();
-
-  Future<Map> _future;
   double imgIconSize36hr = 80.0;
   double imgIconSize = 50.0;
 
@@ -69,9 +64,19 @@ class _JoappState extends State<Joapp> {
   double itemWeekWidth = 100.0;
 
   @override
+  _JoappState createState() => _JoappState();
+}
+
+class _JoappState extends State<Joapp> {
+  final GlobalKey<ScaffoldState> _scaffoldkey = new GlobalKey<ScaffoldState>();
+
+  Future<Map> _future;
+
+  @override
   void initState() {
     super.initState();
-    _setFuture();
+
+    _getStoredCounty();
   }
 
   void _setFuture() {
@@ -83,10 +88,28 @@ class _JoappState extends State<Joapp> {
       widget.countyNum = selectCounty.elementAt(0);
       widget.county = selectCounty.elementAt(1);
 
-      _future = Fetch.handleData(selectCounty.elementAt(0));
+      _setFuture();
     });
 
     Navigator.pop(context);
+
+    _saveCountyToDisk();
+  }
+
+  void _getStoredCounty() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    widget.countyNum = prefs.getString(widget.COUNTYNUM_KEY) ?? "63";
+    widget.county = prefs.getString(widget.COUNTY_KEY) ?? "臺北市";
+
+    setState(() {
+      _setFuture();
+    });
+  }
+
+  void _saveCountyToDisk() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(widget.COUNTYNUM_KEY, widget.countyNum);
+    prefs.setString(widget.COUNTY_KEY, widget.county);
   }
 
   @override
@@ -182,7 +205,7 @@ class _JoappState extends State<Joapp> {
             left: 8.0,
             bottom: 8.0,
           ),
-          height: list36hrHeight,
+          height: widget.list36hrHeight,
           child: ListView.builder(
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
@@ -208,7 +231,7 @@ class _JoappState extends State<Joapp> {
             //限制 ListView(week) 的高度
             transform: Matrix4.rotationZ(-0.05),
             margin: EdgeInsets.only(left: 8.0, right: 8.0, top: 2.0),
-            height: listWeekHeight,
+            height: widget.listWeekHeight,
             child: ListView.builder(
               padding: EdgeInsets.only(right: 10.0),
               scrollDirection: Axis.horizontal,
@@ -258,7 +281,7 @@ class _JoappState extends State<Joapp> {
           playback: Playback.MIRROR,
           builder: (context, alignment) => Container(
             constraints: BoxConstraints.tightFor(
-              width: item36hrWidth,
+              width: widget.item36hrWidth,
             ),
             decoration: BoxDecoration(
               color: Colors.black54,
@@ -288,8 +311,8 @@ class _JoappState extends State<Joapp> {
                     alignment: Alignment.center,
                     transform: index == 0 ? transform : Matrix4.rotationZ(0.0),
                     child: SizedBox(
-                      width: imgIconSize36hr,
-                      height: imgIconSize36hr,
+                      width: widget.imgIconSize36hr,
+                      height: widget.imgIconSize36hr,
                       child: SvgPicture.network(
                         wea36hr.img,
                         semanticsLabel: wea36hr.statusTxt,
@@ -350,7 +373,7 @@ class _JoappState extends State<Joapp> {
       padding: EdgeInsets.only(right: 4.0),
       child: Container(
         constraints: BoxConstraints.tightFor(
-          width: itemWeekWidth,
+          width: widget.itemWeekWidth,
         ),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -379,8 +402,8 @@ class _JoappState extends State<Joapp> {
             ),
             Text(weaCondition.date),
             SizedBox(
-              width: imgIconSize,
-              height: imgIconSize,
+              width: widget.imgIconSize,
+              height: widget.imgIconSize,
               child: SvgPicture.network(
                 weaCondition.img,
                 semanticsLabel: weaCondition.statusTxt,
@@ -398,8 +421,8 @@ class _JoappState extends State<Joapp> {
               height: 4.0,
             ),
             SizedBox(
-              width: imgIconSize,
-              height: imgIconSize,
+              width: widget.imgIconSize,
+              height: widget.imgIconSize,
               child: SvgPicture.network(
                 weaCondition.imgNight,
                 semanticsLabel: weaCondition.statusTxtNight,
