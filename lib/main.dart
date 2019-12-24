@@ -76,10 +76,14 @@ class _JoappState extends State<Joapp> {
   void initState() {
     super.initState();
 
-    _getStoredCounty();
+    _getStoredCounty().then((vo) {
+      setState(() {
+        _setFutureFetchBuild();
+      });
+    });
   }
 
-  void _setFuture() {
+  void _setFutureFetchBuild() {
     _future = Fetch.handleData(widget.countyNum);
   }
 
@@ -88,7 +92,7 @@ class _JoappState extends State<Joapp> {
       widget.countyNum = selectCounty.elementAt(0);
       widget.county = selectCounty.elementAt(1);
 
-      _setFuture();
+      _setFutureFetchBuild();
     });
 
     Navigator.pop(context);
@@ -96,17 +100,13 @@ class _JoappState extends State<Joapp> {
     _saveCountyToDisk();
   }
 
-  void _getStoredCounty() async {
+  Future<void> _getStoredCounty() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     widget.countyNum = prefs.getString(widget.COUNTYNUM_KEY) ?? "63";
     widget.county = prefs.getString(widget.COUNTY_KEY) ?? "臺北市";
-
-    setState(() {
-      _setFuture();
-    });
   }
 
-  void _saveCountyToDisk() async {
+  Future<void> _saveCountyToDisk() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString(widget.COUNTYNUM_KEY, widget.countyNum);
     prefs.setString(widget.COUNTY_KEY, widget.county);
@@ -153,7 +153,7 @@ class _JoappState extends State<Joapp> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {
-            _setFuture();
+            _setFutureFetchBuild();
           });
         },
         child: Icon(Icons.refresh),
