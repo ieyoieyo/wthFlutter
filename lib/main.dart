@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_app/Fetch.dart';
 import 'package:flutter_app/JoDropdownButton.dart';
 import 'package:flutter_app/Wea36Hr.dart';
@@ -10,9 +13,9 @@ import 'package:flutter_app/orientGrid.dart';
 import 'package:flutter_app/JoAnim.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:simple_animations/simple_animations.dart';
-
-import 'Constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
+import 'Constant.dart';
 
 main() {
   runApp(MaterialApp(
@@ -63,6 +66,8 @@ class Joapp extends StatefulWidget {
   double item36hrWidth = 110.0;
   double itemWeekWidth = 100.0;
 
+  File headImageFile;
+
   @override
   _JoappState createState() => _JoappState();
 }
@@ -77,14 +82,45 @@ class _JoappState extends State<Joapp> {
     super.initState();
 
     _getStoredCounty().then((vo) {
-      setState(() {
+//      setState(() {
         _setFutureFetchBuild();
+//      });
+    });
+
+    //TODO: 只有首次開啟app才寫入
+    _getImageFromAssetsAndWriteDisk().then((File file){
+      setState(() {
+        widget.headImageFile = file;
       });
     });
   }
 
+  Future<File> _getImageFromAssetsAndWriteDisk() async {
+    //讀取assets image為Bytes
+    final byteData = await rootBundle.load('assets/images/head.jpg');
+    //目的地File
+    //TODO:加入Platform判斷
+    final file = File('${(await getExternalStorageDirectory()).path}/head.jpg');
+    //寫入Bytes至目的地File
+    await file.writeAsBytes(byteData.buffer
+        .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+    return file;
+  }
+
   void _setFutureFetchBuild() {
     _future = Fetch.handleData(widget.countyNum);
+  }
+
+  Future<void> _getStoredCounty() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    widget.countyNum = prefs.getString(widget.COUNTYNUM_KEY) ?? "63";
+    widget.county = prefs.getString(widget.COUNTY_KEY) ?? "臺北市";
+  }
+
+  Future<void> _saveCountyToDisk() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(widget.COUNTYNUM_KEY, widget.countyNum);
+    prefs.setString(widget.COUNTY_KEY, widget.county);
   }
 
   void _handleCountyChange(List<String> selectCounty) {
@@ -100,36 +136,34 @@ class _JoappState extends State<Joapp> {
     _saveCountyToDisk();
   }
 
-  Future<void> _getStoredCounty() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    widget.countyNum = prefs.getString(widget.COUNTYNUM_KEY) ?? "63";
-    widget.county = prefs.getString(widget.COUNTY_KEY) ?? "臺北市";
-  }
-
-  Future<void> _saveCountyToDisk() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString(widget.COUNTYNUM_KEY, widget.countyNum);
-    prefs.setString(widget.COUNTY_KEY, widget.county);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldkey,
       appBar: AppBar(
-        title: Text(Constant.appName + "\u{1f600}    " + widget.county),
+        title: widget.county == null
+            ? Text(Constant.appName + "\u{1f600}")
+            : Text(Constant.appName + "\u{1f600}    " + widget.county),
       ),
       backgroundColor: Colors.lightBlue[200],
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            DrawerHeader(
-              child: Text("DRAWER HEADER"),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-            ),
+            widget.headImageFile == null
+                ? DrawerHeader(
+                    child: Text("DRAWER HEADER"),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                    ),
+                  )
+                : Image.file(widget.headImageFile),
+//            DrawerHeader(
+//              child: Text("DRAWER HEADER"),
+//              decoration: BoxDecoration(
+//                color: Colors.blue,
+//              ),
+//            ),
             ListTile(
               leading: Icon(Icons.location_city),
               title: JoDropdownButton(
