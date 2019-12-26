@@ -58,6 +58,7 @@ class Joapp extends StatefulWidget {
   final String COUNTYNUM_KEY = "countyNum";
   final String COUNTY_KEY = "county";
   static final String HEAD_IMAGE_PATH_KEY = "headImagePath";
+  static final String HEAD_IMAGE_TXT_KEY = "headImageTxt";
 
   double imgIconSize36hr = 80.0;
   double imgIconSize = 50.0;
@@ -79,6 +80,8 @@ class _JoappState extends State<Joapp> {
   final GlobalKey<ScaffoldState> _scaffoldkey = new GlobalKey<ScaffoldState>();
 
   Future<Map> _future;
+  final controller = TextEditingController();
+  String headImageTxt;
 
   @override
   void initState() {
@@ -101,6 +104,7 @@ class _JoappState extends State<Joapp> {
     //先查是否有先前存的path,有的話直接return該路徑的File
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String path = prefs.getString(Joapp.HEAD_IMAGE_PATH_KEY);
+    headImageTxt = prefs.getString(Joapp.HEAD_IMAGE_TXT_KEY) ?? "這裡打字";
     if (path != null) {
       print("__headImage路徑已存在，直接用先前的圖");
       widget.headImagePath = path;
@@ -191,15 +195,8 @@ class _JoappState extends State<Joapp> {
                       color: Colors.blue,
                     ),
                   )
-                : GestureDetector(
-                    onTap: _pickImageThenSave,
-                    child: Image.file(widget.headImageFile)),
-//            DrawerHeader(
-//              child: Text("DRAWER HEADER"),
-//              decoration: BoxDecoration(
-//                color: Colors.blue,
-//              ),
-//            ),
+                : _headImageAndTextStack(),
+
             ListTile(
               leading: Icon(Icons.location_city),
               title: JoDropdownButton(
@@ -247,6 +244,59 @@ class _JoappState extends State<Joapp> {
       ),
 //      body: OrientGrid(),
 //        body: JoAnim(),
+    );
+  }
+
+  Stack _headImageAndTextStack() {
+    return Stack(
+      alignment: Alignment.bottomRight,
+      children: <Widget>[
+        GestureDetector(
+          onTap: _pickImageThenSave,
+          child: Image.file(widget.headImageFile),
+        ),
+        GestureDetector(
+          onTap: () async {
+            String userKeyIn = await showDialog<String>(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text("title..."),
+                    content: TextField(
+                      maxLines: 1,
+                      maxLength: 8,
+                      controller: controller,
+                    ),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text("OK"),
+                        onPressed: () {
+                          Navigator.of(context).pop(controller.text);
+                        },
+                      )
+                    ],
+                  );
+                });
+            if (userKeyIn != null) {
+              _saveStringPrefs(Joapp.HEAD_IMAGE_TXT_KEY, userKeyIn);
+
+              setState(() {
+                headImageTxt = userKeyIn;
+              });
+            }
+          },
+          child: Container(
+            padding: EdgeInsets.only(right: 8, bottom: 14.0),
+            child: Text(
+              headImageTxt,
+              style: TextStyle(
+                fontSize: 22.0,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -537,5 +587,11 @@ class _JoappState extends State<Joapp> {
         ],
       )),
     );
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 }
