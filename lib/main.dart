@@ -87,7 +87,6 @@ class _JoappState extends State<Joapp> {
 //      });
     });
 
-    //TODO: 只有首次開啟app才寫入
     _getImageFromAssetsAndWriteDisk().then((File file) {
       setState(() {
         widget.headImageFile = file;
@@ -97,13 +96,20 @@ class _JoappState extends State<Joapp> {
 
   Future<File> _getImageFromAssetsAndWriteDisk() async {
     //讀取assets image為Bytes
-    final byteData = await rootBundle.load('assets/images/head.jpg');
+    final byteData = await rootBundle.load('assets/images/head.png');
+    //依Platform決定存檔路徑
+    final directory = Theme.of(context).platform == TargetPlatform.android
+        ? await getExternalStorageDirectory()
+        : await getApplicationSupportDirectory();
     //目的地File
-    //TODO:加入Platform判斷
-    final file = File('${(await getExternalStorageDirectory()).path}/head.jpg');
-    //寫入Bytes至目的地File
-    await file.writeAsBytes(byteData.buffer
-        .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+    final file = File('${directory.path}/head.png');
+    bool isThere = await file.exists();
+    if (!isThere) {
+      print("__圖檔不在(初次開啟) => 寫入圖檔！");
+      //寫入Bytes至目的地File
+      return await file.writeAsBytes(byteData.buffer
+          .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+    }
     return file;
   }
 
@@ -135,7 +141,6 @@ class _JoappState extends State<Joapp> {
 
     _saveCountyToDisk();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -499,5 +504,4 @@ class _JoappState extends State<Joapp> {
       )),
     );
   }
-
 }
