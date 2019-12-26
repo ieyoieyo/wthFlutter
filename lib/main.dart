@@ -83,12 +83,12 @@ class _JoappState extends State<Joapp> {
 
     _getStoredCounty().then((vo) {
 //      setState(() {
-        _setFutureFetchBuild();
+      _setFutureFetchBuild();
 //      });
     });
 
     //TODO: 只有首次開啟app才寫入
-    _getImageFromAssetsAndWriteDisk().then((File file){
+    _getImageFromAssetsAndWriteDisk().then((File file) {
       setState(() {
         widget.headImageFile = file;
       });
@@ -136,15 +136,12 @@ class _JoappState extends State<Joapp> {
     _saveCountyToDisk();
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldkey,
-      appBar: AppBar(
-        title: widget.county == null
-            ? Text(Constant.appName + "\u{1f600}")
-            : Text(Constant.appName + "\u{1f600}    " + widget.county),
-      ),
+      appBar: _getAppBar(),
       backgroundColor: Colors.lightBlue[200],
       drawer: Drawer(
         child: ListView(
@@ -475,4 +472,32 @@ class _JoappState extends State<Joapp> {
       ),
     );
   }
+
+  AppBar _getAppBar() {
+    TextStyle ts = Theme.of(context).primaryTextTheme.title;
+    double titleFontSize = Theme.of(context).primaryTextTheme.title.fontSize;
+
+    return AppBar(
+      title: Text.rich(TextSpan(
+        text: Constant.appName + "\u{1f600}",
+        children: <InlineSpan>[
+          TextSpan(text: widget.county == null ? "" : "    "),
+          WidgetSpan(
+            child: ControlledAnimation(
+                tween: Tween(begin: titleFontSize, end: titleFontSize + 8),
+                duration: Duration(milliseconds: 400),
+                playback: Playback.MIRROR,
+                curve: Curves.bounceOut,
+                builder: (context, fontSize) {
+                  return Text(
+                    widget.county ?? "",
+                    style: ts.copyWith(fontSize: fontSize),
+                  );
+                }),
+          )
+        ],
+      )),
+    );
+  }
+
 }
