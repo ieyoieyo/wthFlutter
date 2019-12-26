@@ -15,6 +15,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'Constant.dart';
 
 main() {
@@ -56,6 +57,7 @@ class Joapp extends StatefulWidget {
   String county;
   final String COUNTYNUM_KEY = "countyNum";
   final String COUNTY_KEY = "county";
+  static final String HEAD_IMAGE_PATH_KEY = "headImagePath";
 
   double imgIconSize36hr = 80.0;
   double imgIconSize = 50.0;
@@ -67,6 +69,7 @@ class Joapp extends StatefulWidget {
   double itemWeekWidth = 100.0;
 
   File headImageFile;
+  String headImagePath;
 
   @override
   _JoappState createState() => _JoappState();
@@ -87,30 +90,59 @@ class _JoappState extends State<Joapp> {
 //      });
     });
 
-    _getImageFromAssetsAndWriteDisk().then((File file) {
+    _handleHeadImageFile().then((File file) {
       setState(() {
         widget.headImageFile = file;
       });
     });
   }
 
-  Future<File> _getImageFromAssetsAndWriteDisk() async {
+  Future<File> _handleHeadImageFile() async {
+    //先查是否有先前存的path,有的話直接return該路徑的File
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String path = prefs.getString(Joapp.HEAD_IMAGE_PATH_KEY);
+    if (path != null) {
+      print("__headImage路徑已存在，直接用先前的圖");
+      widget.headImagePath = path;
+      return File(widget.headImagePath);
+    }
+
     //讀取assets image為Bytes
     final byteData = await rootBundle.load('assets/images/head.png');
     //依Platform決定存檔路徑
     final directory = Theme.of(context).platform == TargetPlatform.android
         ? await getExternalStorageDirectory()
         : await getApplicationSupportDirectory();
+
+    //儲存此路徑(到變數和 local Disk)
+    widget.headImagePath = '${directory.path}/head.png';
+    _saveStringPrefs(Joapp.HEAD_IMAGE_PATH_KEY, widget.headImagePath);
+
     //目的地File
-    final file = File('${directory.path}/head.png');
+    final file = File(widget.headImagePath);
     bool isThere = await file.exists();
     if (!isThere) {
-      print("__圖檔不在(初次開啟) => 寫入圖檔！");
+      print("__headImage圖檔不在(初次開啟) => 寫入assets的圖檔到Disk！");
       //寫入Bytes至目的地File
       return await file.writeAsBytes(byteData.buffer
           .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
     }
     return file;
+  }
+
+  Future<void> _pickImageThenSave() async {
+    var image = await ImagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 900.0,
+        maxHeight: 900.0,
+        imageQuality: 70);
+
+    if (image != null) {
+      setState(() {
+        widget.headImageFile = image;
+      });
+      image.copy(widget.headImagePath);
+    }
   }
 
   void _setFutureFetchBuild() {
@@ -123,10 +155,9 @@ class _JoappState extends State<Joapp> {
     widget.county = prefs.getString(widget.COUNTY_KEY) ?? "臺北市";
   }
 
-  Future<void> _saveCountyToDisk() async {
+  Future<void> _saveStringPrefs(String key, String value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString(widget.COUNTYNUM_KEY, widget.countyNum);
-    prefs.setString(widget.COUNTY_KEY, widget.county);
+    prefs.setString(key, value);
   }
 
   void _handleCountyChange(List<String> selectCounty) {
@@ -139,7 +170,8 @@ class _JoappState extends State<Joapp> {
 
     Navigator.pop(context);
 
-    _saveCountyToDisk();
+    _saveStringPrefs(widget.COUNTYNUM_KEY, widget.countyNum);
+    _saveStringPrefs(widget.COUNTY_KEY, widget.county);
   }
 
   @override
@@ -159,7 +191,9 @@ class _JoappState extends State<Joapp> {
                       color: Colors.blue,
                     ),
                   )
-                : Image.file(widget.headImageFile),
+                : GestureDetector(
+                    onTap: _pickImageThenSave,
+                    child: Image.file(widget.headImageFile)),
 //            DrawerHeader(
 //              child: Text("DRAWER HEADER"),
 //              decoration: BoxDecoration(
