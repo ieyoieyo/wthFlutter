@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'Constant.dart';
+import 'DetailScreen.dart';
 
 main() {
   runApp(MaterialApp(
@@ -87,7 +88,7 @@ class _JoappState extends State<Joapp> {
   void initState() {
     super.initState();
 
-    _getStoredCounty().then((vo) {
+    _getStoredCounty().then((_) {
 //      setState(() {
       _setFutureFetchBuild();
 //      });
@@ -392,111 +393,112 @@ class _JoappState extends State<Joapp> {
       color: Colors.white,
     );
 
-    double delay = 0.0;
-    switch (index) {
-//      case 0:
-//        delay = 0.1;
-//        break;
-      case 1:
-        delay = 0.8;
-        break;
-      case 2:
-        delay = 1.6;
-        break;
-    }
+    double delay = index == 1 ? 0.8 : index == 2 ? 1.6 : 0.0;
 
-    return JoFadeIn(
-      delay: delay,
-      isVertical: true,
-      child: Padding(
-        padding: EdgeInsets.only(right: 3.0),
-        child: ControlledAnimation(
-          duration: Duration(seconds: 1),
-          tween: AlignmentTween(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          curve: Curves.bounceOut,
-          playback: Playback.MIRROR,
-          builder: (context, alignment) => Container(
-            constraints: BoxConstraints.tightFor(
-              width: widget.item36hrWidth,
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) {
+              return DetailScreen();
+            }
+        ));
+      },
+      child: JoFadeIn(
+        delay: delay,
+        isVertical: true,
+        child: Padding(
+          padding: EdgeInsets.only(right: 3.0),
+          child: ControlledAnimation(
+            duration: Duration(seconds: 1),
+            tween: AlignmentTween(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              border: Border.all(
-                color: Colors.black,
+            curve: Curves.bounceOut,
+            playback: Playback.MIRROR,
+            builder: (context, alignment) => Container(
+              constraints: BoxConstraints.tightFor(
+                width: widget.item36hrWidth,
               ),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            padding: EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                border: Border.all(
+                  color: Colors.black,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: EdgeInsets.all(8.0),
 //                    padding: EdgeInsets.all(8.0),
-            child: Column(
-              children: <Widget>[
-                Text(
-                  wea36hr.dayTxt,
-                  style: ts36hr.copyWith(
-                    fontSize: _titleSize,
-                  ),
-                ),
-                ControlledAnimation(
-                  tween: Matrix4Tween(
-                      begin: Matrix4.rotationZ(-6.0),
-                      end: Matrix4.rotationZ(6.0)),
-                  duration: Duration(milliseconds: 350),
-                  playback: Playback.MIRROR,
-//                          curve: Curves.bounceOut,
-                  builder: (context, transform) => Transform(
-                    alignment: Alignment.center,
-                    transform: index == 0 ? transform : Matrix4.rotationZ(0.0),
-                    child: SizedBox(
-                      width: widget.imgIconSize36hr,
-                      height: widget.imgIconSize36hr,
-                      child: SvgPicture.network(
-                        wea36hr.img,
-                        semanticsLabel: wea36hr.statusTxt,
-                        placeholderBuilder: (BuildContext context) => Container(
-                            padding: const EdgeInsets.all(30.0),
-                            child: const CircularProgressIndicator()),
-                      ),
-                    ),
-                  ),
-                ),
-                Text(
-                  wea36hr.imgTxt,
-                  maxLines: 1,
-                  softWrap: false,
-                  style: ts36hr,
-                ),
-                Container(
-                  alignment: index == 0 ? alignment : Alignment.center,
-                  child: Text(
-                    wea36hr.tem,
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    wea36hr.dayTxt,
                     style: ts36hr.copyWith(
                       fontSize: _titleSize,
                     ),
                   ),
-                ),
-                Row(mainAxisSize: MainAxisSize.min, children: [
-                  Padding(
-                    padding: EdgeInsets.only(right: 2.0),
-                    child: Icon(
-                      Icons.beach_access,
-                      color: Colors.white,
-                      size: 12.0,
+                  ControlledAnimation(
+                    tween: Matrix4Tween(
+                        begin: Matrix4.rotationZ(-6.0),
+                        end: Matrix4.rotationZ(6.0)),
+                    duration: Duration(milliseconds: 350),
+                    delay: Duration(milliseconds: index * 250),
+                    playback: Playback.MIRROR,
+                    builder: (context, transform) => Hero(
+                      tag: index,
+                      child: Transform(
+                        alignment: Alignment.center,
+                        transform: transform,
+                        child: SizedBox(
+                          width: widget.imgIconSize36hr,
+                          height: widget.imgIconSize36hr,
+                          child: SvgPicture.network(
+                            wea36hr.img,
+                            semanticsLabel: wea36hr.statusTxt,
+                            placeholderBuilder: (BuildContext context) => Container(
+                                padding: const EdgeInsets.all(30.0),
+                                child: const CircularProgressIndicator()),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   Text(
-                    wea36hr.rain,
+                    wea36hr.imgTxt,
+                    maxLines: 1,
+                    softWrap: false,
                     style: ts36hr,
                   ),
-                ]),
-                Text(
-                  wea36hr.statusTxt,
-                  textAlign: TextAlign.center,
-                  style: ts36hr,
-                ),
-              ],
+                  Container(
+                    alignment: index == 0 ? alignment : Alignment.center,
+                    child: Text(
+                      wea36hr.tem,
+                      style: ts36hr.copyWith(
+                        fontSize: _titleSize,
+                      ),
+                    ),
+                  ),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Padding(
+                      padding: EdgeInsets.only(right: 2.0),
+                      child: Icon(
+                        Icons.beach_access,
+                        color: Colors.white,
+                        size: 12.0,
+                      ),
+                    ),
+                    Text(
+                      wea36hr.rain,
+                      style: ts36hr,
+                    ),
+                  ]),
+                  Text(
+                    wea36hr.statusTxt,
+                    textAlign: TextAlign.center,
+                    style: ts36hr,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
