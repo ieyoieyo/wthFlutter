@@ -196,7 +196,6 @@ class _JoappState extends State<Joapp> {
                     ),
                   )
                 : _headImageAndTextStack(),
-
             ListTile(
               leading: Icon(Icons.location_city),
               title: JoDropdownButton(
@@ -256,35 +255,6 @@ class _JoappState extends State<Joapp> {
           child: Image.file(widget.headImageFile),
         ),
         GestureDetector(
-          onTap: () async {
-            String userKeyIn = await showDialog<String>(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: Text("title..."),
-                    content: TextField(
-                      maxLines: 1,
-                      maxLength: 8,
-                      controller: controller,
-                    ),
-                    actions: <Widget>[
-                      FlatButton(
-                        child: Text("OK"),
-                        onPressed: () {
-                          Navigator.of(context).pop(controller.text);
-                        },
-                      )
-                    ],
-                  );
-                });
-            if (userKeyIn != null) {
-              _saveStringPrefs(Joapp.HEAD_IMAGE_TXT_KEY, userKeyIn);
-
-              setState(() {
-                headImageTxt = userKeyIn;
-              });
-            }
-          },
           child: Container(
             padding: EdgeInsets.only(right: 8, bottom: 14.0),
             child: Text(
@@ -292,9 +262,58 @@ class _JoappState extends State<Joapp> {
               style: TextStyle(
                 fontSize: 22.0,
                 color: Colors.white,
+                shadows: [
+                  Shadow(
+                    color: Colors.black,
+                    offset: Offset(2, 2),
+                    blurRadius: 3,
+                  ),
+                ],
               ),
             ),
           ),
+          onTap: () async {
+            String userKeyIn = await showDialog<String>(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text("要秀的文字"),
+                    content: TextField(
+                      maxLines: 1,
+                      maxLength: 8,
+                      controller: controller,
+                    ),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text("清除"),
+                        onPressed: () {
+                          controller.clear();
+                        },
+                      ),
+                      FlatButton(
+                        child: Text("我打好了"),
+                        onPressed: () {
+                          Navigator.of(context).pop(controller.text);
+                        },
+                      )
+                    ],
+                  );
+                });
+
+            if (userKeyIn != null) {
+              //字太少的話，前面補空格，避免Text太窄難以按到
+              if (userKeyIn.length < 5) {
+                userKeyIn = "    " + userKeyIn.trimLeft();
+              }
+              print("__userKeyIn = '$userKeyIn'");
+
+              _saveStringPrefs(Joapp.HEAD_IMAGE_TXT_KEY, userKeyIn);
+
+              setState(() {
+                headImageTxt = userKeyIn;
+              });
+            }
+          },
         ),
       ],
     );
