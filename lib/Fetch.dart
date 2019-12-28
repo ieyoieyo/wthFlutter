@@ -5,15 +5,19 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import "package:universal_html/html.dart" as uhtml;
 
+import 'main.dart';
+
 class Fetch {
   static String updateTime = "";
+  static String warnTitle;
+  static List<String> warnList;
 
   static Future<Map> handleData(String countyNum) async {
     Map mmap = {};
 
     String warnStr =
         await fetchPost("https://www.cwb.gov.tw/Data/js/fcst/W50_Data.js?");
-    parseWarn(warnStr);
+    parseWarn(warnStr, countyNum);
 
     String url36hr =
         "https://www.cwb.gov.tw/Data/js/TableData_36hr_County_C.js";
@@ -36,45 +40,34 @@ class Fetch {
 //    return gg(document);
   }
 
-  static void parseWarn(String response) {
-
-    List<Wea36Hr> allList = [];
-    String mapStr = RegExp(r"""\{[\n\w\d\s'":\[\]\{\}\/\-\~,\u4E00-\u9FA5]+""")
-        .stringMatch(response);
+  static void parseWarn(String response, String countyNum) {
+    //取出「{」到「}」之間的所有字
+    String mapStr = RegExp(r"""{[\W\w\s]*}""").stringMatch(response);
+    //單引號 換成 雙引號，否則 jsonDecode()會失敗
     mapStr = mapStr.replaceAll("'", "\"");
-    String svgRoot =
-        "https://www.cwb.gov.tw/V8/assets/img/weather_icons/weathers/svg_icon/";
-//    var joMap = jsonDecode(mapStr);
-//    var joo = joMap[countyNum];
-//    for (int i = 0; i < 3; i++) {
-//      String svg = svgRoot;
-//      if (joo[i]["Type"].toString().endsWith("M") ||
-//          joo[i]["Type"].toString().endsWith("D")) {
-//        svg += "day/";
-//      } else if (joo[i]["Type"].toString().endsWith("N")) svg += "night/";
-//      svg += joo[i]["Wx_Icon"] + ".svg";
-//
-//      Wea36Hr wea36hr = Wea36Hr(
-//        timeRange: joo[i]["TimeRange"],
-//        img: svg,
-//        imgTxt: joo[i]["Wx"],
-//        type: joo[i]["Type"],
-//        tem: joo[i]["Temp"]["C"]["L"] + " - " + joo[i]["Temp"]["C"]["H"],
-//        rain: joo[i]["PoP"],
-//        statusTxt: joo[i]["CI"],
-//      );
-//      print(wea36hr.show());
-//      allList.add(wea36hr);
-//    }
-//    return allList;
+    try {
+      Map<String, dynamic> joMap = jsonDecode(mapStr);
+      warnTitle = joMap[countyNum]["Title"];
+
+      //這招才能把 List<dynamic> 變為 List<String>！！
+      List<String> list = List<String>.from(joMap[countyNum]["Content"]);
+      warnList = list;
+//      List<String> list = joMap["63"]["Content"].cast<String>();
+//      list.forEach((String ss){
+//        print(ss);
+//      });
+    } catch (e) {
+      print(e);
+    }
   }
+
   static List<Wea36Hr> parse36(String response, String countyNum) {
     updateTime = RegExp("\=.+;").stringMatch(response);
     updateTime = RegExp("\\d+.+\\d").stringMatch(updateTime);
     updateTime = "資料更新時間：" + updateTime;
 
     List<Wea36Hr> allList = [];
-    String mapStr = RegExp(r"""\{[\n\w\d\s'":\[\]\{\}\/\-\~,\u4E00-\u9FA5]+""")
+    String mapStr = RegExp(r"""{[\W\w\s]*}""")
         .stringMatch(response);
     mapStr = mapStr.replaceAll("'", "\"");
     String svgRoot =

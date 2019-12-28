@@ -397,11 +397,12 @@ class _JoappState extends State<Joapp> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) {
-              return DetailScreen();
-            }
-        ));
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+          return DetailScreen(
+            county: widget.county,
+            wea36hr: wea36hr,
+          );
+        }));
       },
       child: JoFadeIn(
         delay: delay,
@@ -445,7 +446,7 @@ class _JoappState extends State<Joapp> {
                     delay: Duration(milliseconds: index * 250),
                     playback: Playback.MIRROR,
                     builder: (context, transform) => Hero(
-                      tag: index,
+                      tag: wea36hr.timeRange,
                       child: Transform(
                         alignment: Alignment.center,
                         transform: transform,
@@ -455,9 +456,10 @@ class _JoappState extends State<Joapp> {
                           child: SvgPicture.network(
                             wea36hr.img,
                             semanticsLabel: wea36hr.statusTxt,
-                            placeholderBuilder: (BuildContext context) => Container(
-                                padding: const EdgeInsets.all(30.0),
-                                child: const CircularProgressIndicator()),
+                            placeholderBuilder: (BuildContext context) =>
+                                Container(
+                                    padding: const EdgeInsets.all(30.0),
+                                    child: const CircularProgressIndicator()),
                           ),
                         ),
                       ),
