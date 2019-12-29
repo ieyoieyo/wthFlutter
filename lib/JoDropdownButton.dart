@@ -2,22 +2,17 @@ import 'package:flutter/material.dart';
 
 import 'Constant.dart';
 
-class JoDropdownButton extends StatefulWidget {
+class JoDropdownButton extends StatelessWidget {
   final String county;
-  final ValueChanged<List<String>> onCountyChange;
+  final ValueChanged<List<String>> countyChangeCallback;
 
-  JoDropdownButton({@required this.county, @required this.onCountyChange});
+  JoDropdownButton({@required this.county, @required this.countyChangeCallback});
 
-  @override
-  _JoDropdownButtonState createState() => _JoDropdownButtonState();
-}
-
-class _JoDropdownButtonState extends State<JoDropdownButton> {
 
   @override
   Widget build(BuildContext context) {
     return DropdownButton<String>(
-      value: widget.county,
+      value: county,
       elevation: 16,
       iconSize: 32,
       underline: Container(
@@ -61,6 +56,6 @@ class _JoDropdownButtonState extends State<JoDropdownButton> {
 //      widget.county = newValue;
 //    });
 
-    widget.onCountyChange([num, newValue]);
+    countyChangeCallback([num, newValue]);
   }
 }

@@ -22,33 +22,6 @@ import 'DetailScreen.dart';
 main() {
   runApp(MaterialApp(
     title: Constant.appName,
-//    home: DefaultTabController(
-//        length: 3,
-//        child: Scaffold(
-//          appBar: AppBar(
-//            title: Text("joo shit"),
-//            bottom: TabBar(
-//              tabs: [
-//                Tab(
-//                  icon: Icon(Icons.directions_bike),
-//                ),
-//                Tab(
-//                  icon: Icon(Icons.directions_run),
-//                ),
-//                Tab(
-//                  icon: Icon(Icons.directions_bus),
-//                ),
-//              ],
-//            ),
-//          ),
-//          body: TabBarView(children: [
-//            Icon(Icons.directions_bike),
-//            Center(
-//                child: Text("second", style: TextStyle(fontSize: 70.0),
-//            )),
-//            Icon(Icons.directions_bus)
-//          ]),
-//        )),
     home: Joapp(),
   ));
 }
@@ -151,7 +124,7 @@ class _JoappState extends State<Joapp> {
   }
 
   void _setFutureFetchBuild() {
-    _future = Fetch.handleData(widget.countyNum);
+    _future = Fetch.getMapData(widget.countyNum);
   }
 
   Future<void> _getStoredCounty() async {
@@ -200,7 +173,7 @@ class _JoappState extends State<Joapp> {
             ListTile(
               leading: Icon(Icons.location_city),
               title: JoDropdownButton(
-                  county: widget.county, onCountyChange: _handleCountyChange),
+                  county: widget.county, countyChangeCallback: _handleCountyChange),
 //              onTap: () {
 //                setState(() {
 //                  _future = Fetch.handleData(_scaffoldkey);
@@ -323,67 +296,68 @@ class _JoappState extends State<Joapp> {
   Widget _makeView(AsyncSnapshot snapshot) {
     Map dataMap = snapshot.data;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Container(
-          //資料更新時間
-          padding: EdgeInsets.only(right: 10.0),
-          alignment: Alignment.centerRight,
-          transform: Matrix4.rotationZ(0.025),
-          child: Text(
-            Fetch.updateTime,
-            style: TextStyle(
-                fontSize: Theme.of(context).textTheme.body1.fontSize - 2.0),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            //資料更新時間
+            padding: EdgeInsets.only(right: 10.0),
+            alignment: Alignment.centerRight,
+            transform: Matrix4.rotationZ(0.025),
+            child: Text(
+              Fetch.updateTime,
+              textScaleFactor: 0.85,
+            ),
           ),
-        ),
-        Container(
-          //限制 ListView(36hr) 的高度
-          alignment: Alignment.center,
-          transform: Matrix4.rotationZ(0.025),
-          margin: EdgeInsets.only(
-            left: 8.0,
-            bottom: 8.0,
-          ),
-          height: widget.list36hrHeight,
-          child: ListView.builder(
-            shrinkWrap: true,
-            scrollDirection: Axis.horizontal,
-            itemCount: dataMap["36hr"].length,
-            itemBuilder: (context, index) {
-              Wea36Hr wea36hr = dataMap["36hr"].elementAt(index);
-              return getItem36hr(index, wea36hr);
-            },
-          ),
-        ),
-        Container(
-          margin: EdgeInsets.only(left: 10.0),
-          transform: Matrix4.rotationZ(-0.05),
-          child: Text(
-            "未來一週",
-            textScaleFactor: 1.1,
-          ),
-        ),
-        JoFadeIn(
-          delay: 2.0,
-          isVertical: false,
-          child: Container(
-            //限制 ListView(week) 的高度
-            transform: Matrix4.rotationZ(-0.05),
-            margin: EdgeInsets.only(left: 8.0, right: 8.0, top: 2.0),
-            height: widget.listWeekHeight,
+          Container(
+            //限制 ListView(36hr) 的高度
+            alignment: Alignment.center,
+            transform: Matrix4.rotationZ(0.025),
+            margin: EdgeInsets.only(
+              left: 8.0,
+              bottom: 8.0,
+            ),
+            height: widget.list36hrHeight,
             child: ListView.builder(
-              padding: EdgeInsets.only(right: 10.0),
+              shrinkWrap: true,
               scrollDirection: Axis.horizontal,
-              itemCount: dataMap["week"].length,
+              itemCount: dataMap["36hr"].length,
               itemBuilder: (context, index) {
-                WeaCondition weaCondition = dataMap["week"].elementAt(index);
-                return getItemWeek(index, weaCondition);
+                Wea36Hr wea36hr = dataMap["36hr"].elementAt(index);
+                return getItem36hr(index, wea36hr);
               },
             ),
           ),
-        )
-      ],
+          Container(
+            margin: EdgeInsets.only(left: 10.0),
+            transform: Matrix4.rotationZ(-0.05),
+            child: Text(
+              "未來一週",
+              textScaleFactor: 1.1,
+            ),
+          ),
+          JoFadeIn(
+            delay: 2.0,
+            isVertical: false,
+            child: Container(
+              //限制 ListView(week) 的高度
+              transform: Matrix4.rotationZ(-0.05),
+              margin: EdgeInsets.only(left: 8.0, right: 8.0, top: 2.0),
+              height: widget.listWeekHeight,
+              child: ListView.builder(
+                padding: EdgeInsets.only(right: 10.0),
+                scrollDirection: Axis.horizontal,
+                itemCount: dataMap["week"].length,
+                itemBuilder: (context, index) {
+                  WeaCondition weaCondition = dataMap["week"].elementAt(index);
+                  return getItemWeek(index, weaCondition);
+                },
+              ),
+            ),
+          )
+        ],
+      ),
     );
   }
 

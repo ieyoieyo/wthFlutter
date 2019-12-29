@@ -33,7 +33,8 @@ class Wea36Hr {
 
   }
 
-  String show() {
+  @override
+  String toString() {
     return "$dayTxt, $timeRange, $tem, $statusTxt, $rain, $imgTxt, $img";
   }
 }

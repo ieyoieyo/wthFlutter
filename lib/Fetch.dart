@@ -5,29 +5,29 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import "package:universal_html/html.dart" as uhtml;
 
-import 'main.dart';
+import 'Constant.dart';
 
 class Fetch {
   static String updateTime = "";
   static String warnTitle;
   static List<String> warnList;
 
-  static Future<Map> handleData(String countyNum) async {
+  static Future<Map> getMapData(String countyNum) async {
     Map mmap = {};
 
     String warnStr =
-        await fetchPost("https://www.cwb.gov.tw/Data/js/fcst/W50_Data.js?");
+        await fetchGet("https://www.cwb.gov.tw/Data/js/fcst/W50_Data.js?");
     parseWarn(warnStr, countyNum);
 
     String url36hr =
         "https://www.cwb.gov.tw/Data/js/TableData_36hr_County_C.js";
-    String result36hr = await fetchPost(url36hr);
+    String result36hr = await fetchGet(url36hr);
     mmap["36hr"] = parse36(result36hr, countyNum);
 
     String urlWeek =
         "https://www.cwb.gov.tw/V8/C/W/County/MOD/Week/$countyNum" +
             "_Week_PC.html";
-    String result = await fetchPost(urlWeek);
+    String result = await fetchGet(urlWeek);
     uhtml.Document document =
         uhtml.DomParser().parseFromString(result, "text/html");
 
@@ -91,7 +91,7 @@ class Fetch {
         rain: joo[i]["PoP"],
         statusTxt: joo[i]["CI"],
       );
-      print(wea36hr.show());
+      print("${Constant.county[countyNum]}: $wea36hr");
       allList.add(wea36hr);
     }
     return allList;
@@ -146,7 +146,7 @@ class Fetch {
     return list;
   }
 
-  static Future<String> fetchPost(String url) async {
+  static Future<String> fetchGet(String url) async {
 //    await Future.delayed(Duration(seconds: 3));
 //    String url = "https://www.cwb.gov.tw/V8/C/W/County/County.html?CID=63";
     final response = await http.get(url);
