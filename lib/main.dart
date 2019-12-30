@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/Fetch.dart';
 import 'package:flutter_app/JoDropdownButton.dart';
@@ -154,6 +155,28 @@ class _JoappState extends State<Joapp> {
 
   @override
   Widget build(BuildContext context) {
+    final TextStyle tsBody1 = Theme.of(context).textTheme.body1;
+
+    final List<Widget> aboutBoxChildren = <Widget>[
+      SizedBox(height: 24),
+      RichText(
+        text: TextSpan(
+          children: <TextSpan>[
+            TextSpan(
+                style: tsBody1,
+                text: Constant.aboutTxtCht),
+            TextSpan(
+                style: tsBody1,
+                text: Constant.aboutTxtEng),
+            TextSpan(
+                style: tsBody1.copyWith(color: Theme.of(context).accentColor),
+                text: 'https://flutter.dev'),
+            TextSpan(style: tsBody1, text: '.'),
+          ],
+        ),
+      ),
+    ];
+
     return Scaffold(
       key: _scaffoldkey,
       appBar: _getAppBar(),
@@ -173,7 +196,8 @@ class _JoappState extends State<Joapp> {
             ListTile(
               leading: Icon(Icons.location_city),
               title: JoDropdownButton(
-                  county: widget.county, countyChangeCallback: _handleCountyChange),
+                  county: widget.county,
+                  countyChangeCallback: _handleCountyChange),
 //              onTap: () {
 //                setState(() {
 //                  _future = Fetch.handleData(_scaffoldkey);
@@ -186,6 +210,24 @@ class _JoappState extends State<Joapp> {
               onTap: () {
                 Navigator.pop(context);
               },
+            ),
+            GestureDetector(
+              onTap: () {
+                showAboutDialog(context: context, children: aboutBoxChildren);
+              },
+              child: AboutListTile(
+                icon: Icon(Icons.info),
+                applicationIcon: Image.asset(
+                  "assets/icon/launcher_icon.png",
+                  width: 50.0,
+                  height: 50.0,
+                ),
+//                applicationIcon: ImageIcon(AssetImage("assets/icon/launcher_icon.png")),
+                applicationName: Constant.appName,
+                applicationVersion: 'December 2019',
+                applicationLegalese: '© 2019 The JohnnyStudio Soho Authors',
+                aboutBoxChildren: aboutBoxChildren,
+              ),
             ),
           ],
         ),

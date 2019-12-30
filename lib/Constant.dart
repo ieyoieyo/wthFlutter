@@ -24,4 +24,10 @@ class Constant {
     '09020': '金門縣',
     '09007': '連江縣',
   };
+
+  static String aboutTxtCht = 'Flutter 作品。透過查詢中央氣象局網站的資料'
+      ', 實做多種 Flutter Widgets。主要功能為全台各縣市之'
+      '未來 36 小時及未來一週的天氣預報。\n\n';
+  static String aboutTxtEng = 'Johnny Chen is developing Flutter apps '
+      'with the Future of the app!\n';
 }
