@@ -342,18 +342,23 @@ class _JoappState extends State<Joapp> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Container(
-            //資料更新時間
-            padding: EdgeInsets.only(right: 10.0),
-            alignment: Alignment.centerRight,
-            transform: Matrix4.rotationZ(0.025),
-            child: Text(
-              Fetch.updateTime,
-              textScaleFactor: 0.85,
+          //資料更新時間
+          ControlledAnimation(
+            playback: Playback.MIRROR,
+            duration: Duration(milliseconds: 1400),
+            tween: Tween(begin: 0.0, end: 10.0),
+            builder: (context, tween)=> Container(
+              padding: EdgeInsets.only(top: tween, right: 10.0),
+              alignment: Alignment.centerRight,
+              transform: Matrix4.rotationZ(0.025),
+              child: Text(
+                Fetch.updateTime,
+                textScaleFactor: 0.85,
+              ),
             ),
           ),
+          //限制 ListView(36hr) 的高度
           Container(
-            //限制 ListView(36hr) 的高度
             alignment: Alignment.center,
             transform: Matrix4.rotationZ(0.025),
             margin: EdgeInsets.only(

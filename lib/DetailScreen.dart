@@ -181,7 +181,7 @@ class DetailScreen extends StatelessWidget {
       ControlledAnimation(
         startPosition: .7,
         playback: Playback.MIRROR,
-        duration: txtDuration,
+        duration: Duration(milliseconds: 1600),
         tween: Tween(begin: 95.0, end: 75.0),
         builder: (context, top) => Positioned(
           top: top,

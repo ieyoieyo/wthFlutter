@@ -99,50 +99,84 @@ class Fetch {
 
   static List<WeaCondition> parseWeek(uhtml.Document document) {
     List<WeaCondition> list = [];
-    RegExp htmlTag = RegExp("<[^>]*>");
-    RegExp notSpace = RegExp(r'\S+');
 
-    for (int i = 1; i < 8; i++) {
+    RegExp eee2 = RegExp(r'\S{5}<br>\S{3}');
+    RegExp eee3 = RegExp(r'[六日]');
+    String domain = "https://www.cwb.gov.tw";
+
+    uhtml.ElementList temList = document.querySelectorAll("p");
+    uhtml.ElementList imgList = document.querySelectorAll("img");
+
+    String bodyTxt = document.querySelector("body").innerHtml;
+
+    for (int i = 0; i < 7; i++) {
       WeaCondition weaCondition = WeaCondition();
-      uhtml.Element thElement = document.querySelector("th#day$i");
-      if (thElement.toString().contains("holiday")) {
-        weaCondition.isHoliday = true;
-      }
-      //刪掉 HTML TAGS
-      String ss = thElement.outerHtml.replaceAll(htmlTag, "");
 
-      int count = 1;
-      for (var match in notSpace.allMatches(ss)) {
-        if (count == 1)
-          weaCondition.weekDay = match.group(0);
-        else
-          weaCondition.date = match.group(0);
-        count++;
-      }
+      String thisDate = eee2.stringMatch(bodyTxt); //只捉第一天
+      weaCondition.date = thisDate.substring(0, 5);
+      weaCondition.weekDay = thisDate.substring(thisDate.length - 3);
 
-      uhtml.Element imgElement =
-          document.querySelector("tr.day td[headers='day$i'] img");
-      weaCondition.img =
-          "https://www.cwb.gov.tw" + imgElement.getAttribute("src");
-      weaCondition.statusTxt = imgElement.getAttribute("title");
+      weaCondition.isHoliday = eee3.hasMatch(weaCondition.weekDay);
+      //刪掉本次的搜尋以便下次捉到的會是下一天
+      bodyTxt = bodyTxt.replaceFirst(eee2, "");
 
-      uhtml.Element imgNightElement =
-          document.querySelector("tr.night td[headers='day$i'] img");
-      weaCondition.imgNight =
-          "https://www.cwb.gov.tw" + imgNightElement.getAttribute("src");
-      weaCondition.statusTxtNight = imgNightElement.getAttribute("title");
+      weaCondition.tem = temList[i].firstChild.text;
+      weaCondition.temNight = temList[i + 7].firstChild.text;
 
-      uhtml.Element temElement =
-          document.querySelector("tr.day td[headers='day$i'] p span");
-      weaCondition.tem = temElement.outerHtml.replaceAll(htmlTag, "");
+      weaCondition.img = domain + imgList[i].getAttribute("src");
+      weaCondition.imgNight = domain + imgList[i + 7].getAttribute("src");
 
-      uhtml.Element temNightElement =
-          document.querySelector("tr.night td[headers='day$i'] p span");
-      weaCondition.temNight = temNightElement.outerHtml.replaceAll(htmlTag, "");
+      weaCondition.statusTxt = imgList[i].getAttribute("title");
+      weaCondition.statusTxtNight = imgList[i + 7].getAttribute("title");
 
 //      print(weaCondition.toString());
       list.add(weaCondition);
     }
+
+    //舊版的方式 (約在 2020/12月失效)
+//    RegExp htmlTag = RegExp("<[^>]*>");
+//    RegExp notSpace = RegExp(r'\S+');
+//    for (int i = 1; i < 8; i++) {
+//      WeaCondition weaCondition = WeaCondition();
+//      uhtml.Element thElement = document.querySelector("th#day$i");
+//      if (thElement.toString().contains("holiday")) {
+//        weaCondition.isHoliday = true;
+//      }
+//      //刪掉 HTML TAGS
+//      String ss = thElement.outerHtml.replaceAll(htmlTag, "");
+//
+//      int count = 1;
+//      for (var match in notSpace.allMatches(ss)) {
+//        if (count == 1)
+//          weaCondition.weekDay = match.group(0);
+//        else
+//          weaCondition.date = match.group(0);
+//        count++;
+//      }
+//
+//      uhtml.Element imgElement =
+//          document.querySelector("tr.day td[headers='day$i'] img");
+//      weaCondition.img =
+//          "https://www.cwb.gov.tw" + imgElement.getAttribute("src");
+//      weaCondition.statusTxt = imgElement.getAttribute("title");
+//
+//      uhtml.Element imgNightElement =
+//          document.querySelector("tr.night td[headers='day$i'] img");
+//      weaCondition.imgNight =
+//          "https://www.cwb.gov.tw" + imgNightElement.getAttribute("src");
+//      weaCondition.statusTxtNight = imgNightElement.getAttribute("title");
+//
+//      uhtml.Element temElement =
+//          document.querySelector("tr.day td[headers='day$i'] p span");
+//      weaCondition.tem = temElement.outerHtml.replaceAll(htmlTag, "");
+//
+//      uhtml.Element temNightElement =
+//          document.querySelector("tr.night td[headers='day$i'] p span");
+//      weaCondition.temNight = temNightElement.outerHtml.replaceAll(htmlTag, "");
+//
+////      print(weaCondition.toString());
+//      list.add(weaCondition);
+//    }
     return list;
   }
 
